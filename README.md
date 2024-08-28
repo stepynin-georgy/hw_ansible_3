@@ -3,6 +3,9 @@
 ## Подготовка к выполнению
 
 1. Подготовьте в Yandex Cloud три хоста: для `clickhouse`, для `vector` и для `lighthouse`.
+
+![изображение](https://github.com/stepynin-georgy/hw_ansible_3/blob/main/img/Screenshot_148.png)
+
 2. Репозиторий LightHouse находится [по ссылке](https://github.com/VKCOM/lighthouse).
 
 ## Основная часть
@@ -12,21 +15,20 @@
 3. Tasks должны: скачать статику LightHouse, установить Nginx или любой другой веб-сервер, настроить его конфиг для открытия LightHouse, запустить веб-сервер.
 4. Подготовьте свой inventory-файл `prod.yml`.
 5. Запустите `ansible-lint site.yml` и исправьте ошибки, если они есть.
+
+Осталась одна ошибка, как ее исправить пока нет идей. Но плейбук проходит полностью.
+
+![изображение](https://github.com/stepynin-georgy/hw_ansible_3/blob/main/img/Screenshot_151.png)
+
 6. Попробуйте запустить playbook на этом окружении с флагом `--check`.
+
+Плейбук с флагом `--check` не проходит дальше установки пакетов, т.к. они не загружены. 
+
+![изображение](https://github.com/stepynin-georgy/hw_ansible_3/blob/main/img/Screenshot_150.png)
+
 7. Запустите playbook на `prod.yml` окружении с флагом `--diff`. Убедитесь, что изменения на системе произведены.
-8. Повторно запустите playbook с флагом `--diff` и убедитесь, что playbook идемпотентен.
-9. Подготовьте README.md-файл по своему playbook. В нём должно быть описано: что делает playbook, какие у него есть параметры и теги.
-10. Готовый playbook выложите в свой репозиторий, поставьте тег `08-ansible-03-yandex` на фиксирующий коммит, в ответ предоставьте ссылку на него.
 
----
-
-### Как оформить решение задания
-
-Выполненное домашнее задание пришлите в виде ссылки на .md-файл в вашем репозитории.
-
----
-
-
+```
 root@netology:/opt/ansible_hw3# ansible-playbook -i playbook/inventory/prod.yml playbook/site.yml --diff
 [WARNING]: Found both group and host with same name: vector
 [WARNING]: Found both group and host with same name: clickhouse
@@ -212,5 +214,25 @@ PLAY RECAP *********************************************************************
 clickhouse                 : ok=8    changed=3    unreachable=0    failed=0    skipped=0    rescued=1    ignored=0   
 lighthouse                 : ok=6    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
 vector                     : ok=12   changed=4    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+```
 
-http://89.169.174.116/#http://89.169.172.66:8123/?user=netology
+Для проверки Lighthouse перешел по адресу `http://89.169.174.116/#http://89.169.172.66:8123/?user=netology` и авторизовался:
+
+![изображение](https://github.com/stepynin-georgy/hw_ansible_3/blob/main/img/Screenshot_152.png)
+
+8. Повторно запустите playbook с флагом `--diff` и убедитесь, что playbook идемпотентен.
+9. Подготовьте README.md-файл по своему playbook. В нём должно быть описано: что делает playbook, какие у него есть параметры и теги.
+10. Готовый playbook выложите в свой репозиторий, поставьте тег `08-ansible-03-yandex` на фиксирующий коммит, в ответ предоставьте ссылку на него.
+
+---
+
+### Как оформить решение задания
+
+Выполненное домашнее задание пришлите в виде ссылки на .md-файл в вашем репозитории.
+
+---
+
+
+
+
+
