@@ -1,0 +1,24 @@
+---
+clickhouse:
+  hosts:
+    clickhouse:
+      ansible_host: 89.169.172.66
+      ansible_user: user
+      ansible_ssh_private_key_file: /root/.ssh/id_rsa
+      ansible_ssh_extra_args: -o StrictHostKeyChecking=no
+
+vector:
+  hosts:
+    vector:
+      ansible_host: 51.250.30.48
+      ansible_user: user
+      ansible_ssh_private_key_file: /root/.ssh/id_rsa
+      ansible_ssh_extra_args: -o StrictHostKeyChecking=no
+
+lighthouse:
+  hosts:
+    lighthouse:
+      ansible_host: 89.169.174.116
+      ansible_user: user
+      ansible_ssh_private_key_file: /root/.ssh/id_rsa
+      ansible_ssh_extra_args: -o StrictHostKeyChecking=no
