@@ -11,6 +11,9 @@
 ## Основная часть
 
 1. Допишите playbook: нужно сделать ещё один play, который устанавливает и настраивает LightHouse.
+
+[site.yml](https://github.com/stepynin-georgy/hw_ansible_3/blob/main/playbook/site.yml)
+
 2. При создании tasks рекомендую использовать модули: `get_url`, `template`, `yum`, `apt`.
 3. Tasks должны: скачать статику LightHouse, установить Nginx или любой другой веб-сервер, настроить его конфиг для открытия LightHouse, запустить веб-сервер.
 4. Подготовьте свой inventory-файл `prod.yml`.
@@ -222,6 +225,79 @@ vector                     : ok=12   changed=4    unreachable=0    failed=0    s
 
 8. Повторно запустите playbook с флагом `--diff` и убедитесь, что playbook идемпотентен.
 9. Подготовьте README.md-файл по своему playbook. В нём должно быть описано: что делает playbook, какие у него есть параметры и теги.
+
+[site.yml](https://github.com/stepynin-georgy/hw_ansible_3/blob/main/playbook/site.yml) содержит 2 блока:
+
+1. Загрузка и установка clickhouse. 
+
+Используемые переменные: 
+
+- `clickhouse_version: "22.3.3.44"` - версия clickhouse
+
+- Загружаемые пакеты:
+
+```
+clickhouse_packages:
+  - clickhouse-client
+  - clickhouse-server
+  - clickhouse-common-static
+```
+- `clickhouse_config_path: /etc/clickhouse-server/config.xml` - конфигурационный файл
+- `clickhouse_users_path: /etc/clickhouse-server/users.xml` - конфигурационный файл
+- `clickhouse_user: netology` - пользователь бд
+- `clickhouse_password: netology` - пароль пользователя бд
+
+Tasks: 
+- `TASK [Get clickhouse distrib]` - загрузка rpm-пакетов с помощью модуля `ansible.builtin.get_url`
+- `TASK [Install clickhouse packages]` - установка загруженных пакетов с помощью модуля `ansible.builtin.apt`
+- `TASK [Deploy config clickhouse]` - создает файл `/etc/clickhouse-server/config.xml` с конфигом Clickhouse по шаблону из `template/clickhouse.config.j2` с помощью модуля `ansible.builtin.template`
+- `TASK [Deploy user config clickhouse]` - создает файл `/etc/clickhouse-server/users.xml` с конфигом Clickhouse по шаблону из `template/clickhouse.users.j2` с помощью модуля `ansible.builtin.template`
+- `TASK [Flush handlers]` - инициирует внеочередной запуск хендлера `Start clickhouse service RUNNING HANDLER [Start clickhouse service]` - для старта сервера Clickhouse в хендлере используется модуль `ansible.builtin.service`
+- `TASK [Wait for clickhouse-server to become available]` - устанавливает паузу в 15 секунд с помощью модуля `ansible.builtin.pause`, чтобы сервер Clickhouse успел запуститься
+- `TASK [Create database]` - создаание бд Clickhouse с помощью модуля `ansible.builtin.command`
+- `TASK [Create database]` - создание таблицы в бд Clickhouse с помощью модуля `ansible.builtin.command`
+
+2. Загрузка и установка Vector
+
+Используемые переменные:
+
+- `vector_version: "0.21.1"` - версия используемого ПО
+- `vector_os_arch: "x86_64"` - Архитектура
+- `vector_workdir: "/home/centos/vector"` - домашний каталог для загрузки rpm-пакетов
+- `vector_os_user: "vector"` - имя пользователя
+- `vector_os_group: "vector"` - имя группы пользователя
+
+Tasks:
+
+- `TASK [Create vector work directory]` - создает каталог, в котором будут загружены rpm-пакеты для Vector, с помощью модуля `ansible.builtin.file`
+- `TASK [Get Vector distrib]` - загрузка архива с помощью модуля `ansible.builtin.get_url`
+- `TASK [Unzip Vector archive]` - распаковка архива с помощью модуля `ansible.builtin.unarchive`
+- `TASK [Install vector binary]` - копирует исполняемый файл Vector в /usr/bin с помощью модуля `ansible.builtin.copy`
+- `TASK [Check Vector installation]` - проверяет, что бинарный файл Vector работает корректно, с помощью модуля `ansible.builtin.command`
+- `TASK [Create Vector config vector.toml]` - создает файл /etc/vector/vector.toml с конфигом Vector по шаблону из template/vector.toml с помощью модуля `ansible.builtin.template`
+- `TASK [Create vector.service daemon]` - создает файл юнита systemd /lib/systemd/system/vector.service с помощью модуля `ansible.builtin.copy`
+- `TASK [Modify vector.service file]` - редактирует файл /lib/systemd/system/vector.service с помощью модуля `ansible.builtin.replace`
+- `TASK [Create user vector]` - создает пользователя ОС с помощью модуля `ansible.builtin.user`
+- `TASK [Create Vector data_dir]` - создает каталог для данных Vector с помощью модуля `ansible.builtin.file`
+- `RUNNING HANDLER [Start Vector service]` - инициируется запуск хендлера `Start Vector service` для запуска Vector с помощью модуля `ansible.builtin.systemd`
+
+3. Загрузка и установка Lighthouse
+
+Используемые переменные:
+
+- `lighthouse_vcs: https://github.com/VKCOM/lighthouse.git` - репозиторий Lighthouse
+- `lighthouse_dir: /var/lib/lighthouse` - директория Lighthouse
+- `nginx_user_name: root` - пользователь, подставляется в конфиг Nginx
+
+Tasks:
+
+- `TASK [Install nginx]` - установка Nginx с помощью модуля `ansible.builtin.apt`
+- `TASK [Create Nginx config]` - создает файл /etc/nginx/nginx.conf с конфигом Nginx по шаблону из template/nginx.conf с помощью модуля `ansible.builtin.template`
+- `TASK [Install git]` - установка Git с помощью модуля `ansible.builtin.apt`
+- `TASK [Copy lighthouse rfom git]` - загрузка из репозитория Lighthouse с помощью модуля `ansible.builtin.copy`
+- `TASK [Create lighthouse config]` - создает файл /etc/nginx/conf.d/default.conf с конфигом Nginx по шаблону из template/lighthouse.conf с помощью модуля `ansible.builtin.template`
+
+
 10. Готовый playbook выложите в свой репозиторий, поставьте тег `08-ansible-03-yandex` на фиксирующий коммит, в ответ предоставьте ссылку на него.
 
 ---
